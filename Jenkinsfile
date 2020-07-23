@@ -43,12 +43,12 @@ def config = jobConfig {
 }
 
 def job = {
-    /*stage('Install Molecule and Latest Ansible') {
+    stage('Install Molecule and Latest Ansible') {
         sh '''
             sudo pip install --upgrade 'ansible==2.9.*'
             sudo pip install molecule docker
         '''
-    }*/
+    }
 
     def override_config = [:]
 
@@ -105,14 +105,14 @@ def job = {
         molecule_args = "--base-config base-config.yml"
     }
 
-    /*withDockerServer([uri: dockerHost()]) {
+    withDockerServer([uri: dockerHost()]) {
         stage("Test Scenario: ${params.SCENARIO_NAME}") {
             sh """
 cd roles/confluent.test
 molecule ${molecule_args} test -s ${params.SCENARIO_NAME}
             """
         }
-    }*/
+    }
 }
 
 def post = {
