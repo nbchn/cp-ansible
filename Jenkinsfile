@@ -52,6 +52,11 @@ def job = {
 
     def override_config = [:]
 
+    if (targetBranch().toString().endsWith('.x') && !params.CONFLUENT_PACKAGE_BASEURL) {
+        // XXX: Temp, just need a change to start testing with PR builds
+        error "I NEED TO FIND SOMETHING"
+    }
+
     if(params.CONFLUENT_PACKAGE_BASEURL) {
         override_config['confluent_common_repository_baseurl'] = params.CONFLUENT_PACKAGE_BASEURL
     }
