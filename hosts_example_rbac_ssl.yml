@@ -1,0 +1,126 @@
+---
+all:
+  vars:
+    ansible_connection: ssh
+    ansible_user: ubuntu
+    ansible_become: true
+    ansible_ssh_private_key_file: /Users/nbouchardon/.ssh/nils-bootcamp.pem
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no' # needs to be passed with manual ssh
+
+    ssl_enabled: true     
+    ssl_provided_keystore_and_truststore: true     
+    ssl_keystore_filepath: "certs/{{inventory_hostname}}-keystore.jks"     
+    ssl_keystore_key_password: changeme     
+    ssl_keystore_store_password: changeme     
+    ssl_truststore_filepath: certs/kafka-truststore.jks     
+    ssl_truststore_password: changeme     
+    ssl_truststore_ca_cert_alias: kafka-int-ca
+    ssl_mutual_auth_enabled: true
+    # TODO set these equal to ssl_enabled and ssl_mutual_auth_enabled on next version increase
+    # zookeeper_ssl_enabled: true
+    # zookeeper_ssl_mutual_auth_enabled: true
+
+    sasl_protocol: scram
+    sasl_scram_users:
+      app-bootcamp:
+        principal: app-bootcamp
+        password: app-bootcamp-secret
+
+    #### Configuring Role Based Access Control ####
+    ## To have CP-Ansible configure Components for RBAC and create necessary role bindings, set these Mandtory variables:
+    ## Note: Confluent Components will be configured to connect to the "internal" listener automatically
+    ## DO NOT UPDATE the internal listener
+    ## Note: It is recommended to create an additional listener for external clients, but the interbroker one would also work
+    ## Note: An authentication mode must be selected on all listeners, for example (ssl_enabled=false and ssl_mutual_auth_enabled=false) or sasl_protocol=none is not supported.
+    rbac_enabled: true
+
+    ## LDAP Users
+    ## Note: Below users must already exist in your LDAP environment.  See kafka_broker vars, for LDAP connection details.
+
+    mds_super_user: alice
+    mds_super_user_password: alicepass
+    schema_registry_ldap_user: alice
+    schema_registry_ldap_password: alicepass
+    kafka_connect_ldap_user: alice
+    kafka_connect_ldap_password: alicepass
+    ksql_ldap_user: alice
+    ksql_ldap_password: alicepass
+    kafka_rest_ldap_user: alice
+    kafka_rest_ldap_password: alicepass
+    control_center_ldap_user: alice
+    control_center_ldap_password: alicepass
+
+    # kafka_broker_custom_listeners:
+    #   client:
+    #     name: CLIENT
+    #     port: 9093
+
+    ## Below are optional variables
+    # create_mds_certs: false # To provide your own MDS Certs set this variable and the next two
+    # token_services_public_pem_file: /path/to/public.pem
+    # token_services_private_pem_file: /path/to/tokenKeypair.pem
+    # mds_acls_enabled: false #to turn off mds based acls, they are on by default if rbac is on
+    # mds_ssl_enabled: true/false #defaults to whatever ssl_enabled var is set to
+    ## Allow the playbooks to configure additional users as system admins on the platform, set the list below
+    # rbac_component_additional_system_admins:
+    #   - user1
+    #   - user2
+    ## By default the Confluent CLI will be installed on each host, to stop this download set:
+    # confluent_cli_download_enabled: false
+    ## CLI will be downloaded from Confluent's webservers, to customize the location of the binary set:
+    # confluent_cli_custom_download_url: <URL to custom webserver hosting for confluent cli>
+
+zookeeper:
+  hosts:
+    ec2-3-9-191-179.eu-west-2.compute.amazonaws.com:
+    ec2-3-10-246-3.eu-west-2.compute.amazonaws.com:
+    ec2-3-8-196-124.eu-west-2.compute.amazonaws.com:
+
+kafka_broker:
+  vars: 
+    ldap_config: |
+        ldap.java.naming.factory.initial=com.sun.jndi.ldap.LdapCtxFactory
+        ldap.com.sun.jndi.ldap.read.timeout=3000
+        ldap.java.naming.provider.url=ldap://ec2-3-11-13-10.eu-west-2.compute.amazonaws.com:389
+        ldap.java.naming.security.principal=alice
+        ldap.java.naming.security.credentials=alicepass
+        ldap.java.naming.security.authentication=simple
+        ldap.user.search.base=OU=PS,DC=BOOTCAMP-EUROPE,DC=internal
+        ldap.user.search.scope=2
+        ldap.group.search.base=OU=PS,DC=BOOTCAMP-EUROPE,DC=internal
+        ldap.user.name.attribute=cn
+        ldap.group.object.class=group
+        ldap.user.memberof.attribute.pattern=CN=([^,]*),.*
+        ldap.group.name.attribute=CN
+        ldap.group.member.attribute.pattern=CN=([^,]*),.*
+
+  hosts:
+    ec2-35-179-15-127.eu-west-2.compute.amazonaws.com:
+        broker_id: 1
+    ec2-18-130-223-11.eu-west-2.compute.amazonaws.com:
+        broker_id: 2
+    ec2-3-8-10-196.eu-west-2.compute.amazonaws.com:
+        broker_id: 3
+schema_registry:
+  hosts:
+    ec2-18-132-73-20.eu-west-2.compute.amazonaws.com:
+    ec2-18-132-213-36.eu-west-2.compute.amazonaws.com:
+
+kafka_rest:
+  hosts:
+    ec2-18-132-206-194.eu-west-2.compute.amazonaws.com:
+     
+ksql:
+  hosts:
+    ec2-18-130-131-201.eu-west-2.compute.amazonaws.com:
+    ec2-35-176-35-230.eu-west-2.compute.amazonaws.com:
+
+kafka_connect:
+  hosts:
+    ec2-35-179-75-122.eu-west-2.compute.amazonaws.com:
+    ec2-3-11-81-122.eu-west-2.compute.amazonaws.com:
+
+control_center:
+  hosts:
+    ec2-3-8-86-42.eu-west-2.compute.amazonaws.com:
+

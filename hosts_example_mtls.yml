@@ -1,0 +1,62 @@
+---
+all:
+  vars:
+    ansible_connection: ssh
+    ansible_user: ubuntu
+    ansible_become: true
+    ansible_ssh_private_key_file: /Users/nbouchardon/.ssh/nils-bootcamp.pem
+    ansible_ssh_common_args: '-o StrictHostKeyChecking=no' # needs to be passed with manual ssh
+
+    ssl_enabled: true     
+    ssl_provided_keystore_and_truststore: true     
+    ssl_keystore_filepath: "certs/{{inventory_hostname}}-keystore.jks"     
+    ssl_keystore_key_password: changeme     
+    ssl_keystore_store_password: changeme     
+    ssl_truststore_filepath: certs/kafka-truststore.jks     
+    ssl_truststore_password: changeme     
+    ssl_truststore_ca_cert_alias: kafka-int-ca
+    ssl_mutual_auth_enabled: true
+    # TODO set these equal to ssl_enabled and ssl_mutual_auth_enabled on next version increase
+    # zookeeper_ssl_enabled: true
+    # zookeeper_ssl_mutual_auth_enabled: true
+
+zookeeper:
+  hosts:
+    ec2-3-9-191-179.eu-west-2.compute.amazonaws.com:
+    ec2-3-10-246-3.eu-west-2.compute.amazonaws.com:
+    ec2-3-8-196-124.eu-west-2.compute.amazonaws.com:
+
+kafka_broker:
+  hosts:
+    ec2-35-179-15-127.eu-west-2.compute.amazonaws.com:
+        broker_id: 1
+        broker_advertised_listeners: "EXTERNAL://ec2-3-10-162-81.eu-west-2.compute.amazonaws.com,INTERNAL://ec2-3-10-162-81.eu-west-2.compute.amazonaws.com"
+    ec2-18-130-223-11.eu-west-2.compute.amazonaws.com:
+        broker_id: 2
+        broker_advertised_listeners: "EXTERNAL://ec2-18-132-64-229.eu-west-2.compute.amazonaws.com,INTERNAL://ec2-18-132-64-229.eu-west-2.compute.amazonaws.com"
+    ec2-3-8-10-196.eu-west-2.compute.amazonaws.com:
+        broker_id: 3
+        broker_advertised_listeners: "EXTERNAL://ec2-3-8-191-186.eu-west-2.compute.amazonaws.com,INTERNAL://ec2-3-8-191-186.eu-west-2.compute.amazonaws.com"
+schema_registry:
+  hosts:
+    ec2-18-132-73-20.eu-west-2.compute.amazonaws.com:
+    ec2-18-132-213-36.eu-west-2.compute.amazonaws.com:
+
+kafka_rest:
+  hosts:
+    ec2-18-132-206-194.eu-west-2.compute.amazonaws.com:
+     
+ksql:
+  hosts:
+    ec2-18-130-131-201.eu-west-2.compute.amazonaws.com:
+    ec2-35-176-35-230.eu-west-2.compute.amazonaws.com:
+
+kafka_connect:
+  hosts:
+    ec2-35-179-75-122.eu-west-2.compute.amazonaws.com:
+    ec2-3-11-81-122.eu-west-2.compute.amazonaws.com:
+
+control_center:
+  hosts:
+    ec2-3-8-86-42.eu-west-2.compute.amazonaws.com:
+
