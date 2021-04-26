@@ -1,0 +1,151 @@
+---
+driver:
+  name: docker
+platforms:
+  - name: zookeeper1
+    hostname: zk1.cs.com
+    groups:
+      - zookeeper
+    image: geerlingguy/docker-centos7-ansible
+    dockerfile: ../Dockerfile.j2
+    command: ""
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+    networks:
+      - name: confluent
+  - name: zookeeper2
+    hostname: zk2.cs.com
+    groups:
+      - zookeeper
+    image: geerlingguy/docker-centos7-ansible
+    dockerfile: ../Dockerfile.j2
+    command: ""
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+    networks:
+      - name: confluent
+  - name: zookeeper3
+    hostname: zk3.cs.com
+    groups:
+      - zookeeper
+    image: geerlingguy/docker-centos7-ansible
+    dockerfile: ../Dockerfile.j2
+    command: ""
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+    networks:
+      - name: confluent
+  - name: kafka-broker1
+    hostname: ak1.cs.com
+    groups:
+      - kafka_broker
+    image: geerlingguy/docker-centos7-ansible
+    dockerfile: ../Dockerfile.j2
+    command: ""
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+    networks:
+      - name: confluent
+  - name: kafka-broker2
+    hostname: ak2.cs.com
+    groups:
+      - kafka_broker
+    image: geerlingguy/docker-centos7-ansible
+    dockerfile: ../Dockerfile.j2
+    command: ""
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+    networks:
+      - name: confluent
+  - name: kafka-broker3
+    hostname: ak3.cs.com
+    groups:
+      - kafka_broker
+    image: geerlingguy/docker-centos7-ansible
+    dockerfile: ../Dockerfile.j2
+    command: ""
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+    networks:
+      - name: confluent
+  - name: control-center1
+    hostname: cc.cs.com
+    groups:
+      - control_center
+    image: geerlingguy/docker-centos7-ansible
+    dockerfile: ../Dockerfile.j2
+    command: ""
+    volumes:
+      - /sys/fs/cgroup:/sys/fs/cgroup:ro
+    privileged: true
+    published_ports:
+      - "9021:9021"
+    networks:
+      - name: confluent
+provisioner:
+  name: ansible
+  config_options:
+    defaults:
+      hash_behaviour: merge
+  playbooks:
+    prepare: ../certificates.yml
+    converge: ../../../../all.yml
+  inventory:
+    group_vars:
+      all:
+        scenario_name: mtls-customcerts-rhel
+
+        ssl_enabled: true
+        ssl_mutual_auth_enabled: true
+
+        ssl_custom_certs: true
+        ssl_ca_cert_filepath: "roles/confluent.test/molecule/{{scenario_name}}/generated_ssl_files/ca.crt"
+        ssl_signed_cert_filepath: "roles/confluent.test/molecule/{{scenario_name}}/generated_ssl_files/{{inventory_hostname}}-ca1-signed.crt"
+        ssl_key_filepath: "roles/confluent.test/molecule/{{scenario_name}}/generated_ssl_files/{{inventory_hostname}}-key.pem"
+        ssl_key_password: keypass
+
+        kafka_broker_log_dir: /opt/kafka
+
+        kafka_broker_custom_properties:
+          delete.topic.enable: true
+          num.network.threads: 3
+          num.io.threads: 8
+          num.partitions: 3
+          default.replication.factor: 3
+          min.insync.replicas: 2
+          num.recovery.threads.per.data.dir: 4
+          authorizer.class.name: kafka.security.auth.SimpleAclAuthorizer
+          allow.everyone.if.no.acl.found: true
+
+        zookeeper_custom_properties:
+          zookeeper.connection.timeout.ms: 30000
+          zookeeper.session.timeout.ms: 30000
+          zookeeper.set.acl: true
+
+
+verifier:
+  name: ansible
+lint: |
+  set -e
+  yamllint -c ../../.yamllint ../..
+scenario:
+  test_sequence:
+    - lint
+    - dependency
+    - cleanup
+    - destroy
+    - syntax
+    - create
+    - prepare
+    - converge
+    # - idempotence
+    - side_effect
+    - verify
+    - cleanup
+    - destroy
